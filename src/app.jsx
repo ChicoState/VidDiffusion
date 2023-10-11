@@ -1,5 +1,6 @@
 import React, { useState, createContext, useContext } from "react";
 import { createRoot } from 'react-dom/client';
+import { InstallBanner } from "./InstallBanner.jsx";
 
 export const FileContext = createContext(null);
 
@@ -120,6 +121,13 @@ const App = () => {
         <FileContext.Provider value={{ file, setFile }}>
             <div>
                 <Header />
+                <InstallBanner listOfItems={[
+                    { name: "conda", isInstalled: true },
+                    { name: "model", isInstalled: false },
+                    { name: "thing3", isInstalled: false },
+                    { name: "thing4", isInstalled: true },
+                    { name: "thing5", isInstalled: false },
+                ]} />
                 <DragAndDrop />
                 {file && <Tutorial />}
             </div >
