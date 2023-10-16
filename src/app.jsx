@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext } from "react";
+import React, { useState, createContext, useContext, createRef, useEffect } from "react";
 import { createRoot } from 'react-dom/client';
 import { InstallBanner } from "./InstallBanner.jsx";
 
@@ -15,6 +15,7 @@ const Header = () => {
 const DragAndDrop = () => {
     const [isDraggedOver, setIsDraggedOver] = useState(false);
     const { file, setFile } = useContext(FileContext);
+    const videoRef = createRef();
 
     const dropHandler = (e) => {
         e.preventDefault();
@@ -45,23 +46,50 @@ const DragAndDrop = () => {
         setFile(input.files[0]);
     };
 
+    useEffect(() => {
+        if (file && videoRef.current) {
+            let reader = new FileReader();
+            let videoSrc = document.querySelector("#video-source");
+            let videoElement = document.querySelector("#video-element");
+
+            reader.onload = (e) => {
+                console.log(e);
+                videoSrc.src = e.target.result;
+                videoSrc.type = "video/mp4";
+                console.log(videoSrc);
+                videoElement.load();
+            };
+
+            console.log(file);
+            reader.readAsDataURL(file);
+        }
+    }, [videoRef]);
+
     return (
         <div className="mx-auto w-52 flex flex-col gap-4">
-            <button onDrop={dropHandler}
-                onDragEnter={dragEnterHandler}
-                onDragLeave={dragEnterHandler}
-                onClick={clickHandler}
-                className="select-none border-dashed border-4 bg-blue-50 border-blue-300 rounded-xl aspect-square w-full flex items-center justify-center">
-                <span>
-                    Add your file
-                </span>
-                <input
-                    onChange={fileChanged}
-                    id="fileInput" type="file" className="fixed top-[-100%]" />
-            </button>
-            {file && <div className="border-slate-700 border p-4 rounded-md bg-slate-50">
-                {file.path.split('/').pop()}
-            </div>}
+            {file ?
+                <video
+                    id="video-element"
+                    ref={videoRef}
+                    className="border-slate-700 border p-4 rounded-md bg-slate-50"
+                    controls>
+                    <source id="video-source" />
+                    Cannot load video source
+                </video>
+                : <button onDrop={dropHandler}
+                    onDragEnter={dragEnterHandler}
+                    onDragLeave={dragEnterHandler}
+                    onClick={clickHandler}
+                    className="select-none border-dashed border-4 bg-blue-50 border-blue-300 rounded-xl aspect-square w-full flex items-center justify-center">
+                    <span>
+                        Add your file
+                    </span>
+                    <input
+                        accept="video/*"
+                        onChange={fileChanged}
+                        id="fileInput" type="file" className="fixed top-[-100%]" />
+                </button>
+            }
         </div>
     );
 }
@@ -72,13 +100,15 @@ const CodeBlock = ({ text }) => {
     };
 
     return (
-        <pre className="bg-slate-50 border border-slate-300 text-slate-800 p-2 rounded-md relative">
-            {text}
+        <div className="relative">
+            <pre className="bg-slate-50 border border-slate-300 text-slate-800 p-2 rounded-md overflow-x-auto">
+                {text}
 
+            </pre>
             <button onClick={copyClick} className="aspect-square absolute top-1 right-2 hover:underline">
                 copy
             </button>
-        </pre>
+        </div>
     )
 }
 
