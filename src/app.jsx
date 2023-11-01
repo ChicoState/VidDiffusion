@@ -147,6 +147,10 @@ const Tutorial = () => {
 const App = () => {
     const [file, setFile] = useState(null);
 
+    window.electronAPI.doLs("hello").then((val) => {
+        console.log(`${JSON.stringify(val, null, 4)}`);
+    });
+
     return (
         <FileContext.Provider value={{ file, setFile }}>
             <div>
