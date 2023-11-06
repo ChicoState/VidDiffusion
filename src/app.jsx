@@ -2,9 +2,9 @@ import React, { useState, createContext, useContext, createRef, useEffect } from
 import { createRoot } from 'react-dom/client';
 import { InstallBanner } from "./InstallBanner.jsx";
 import Tabs from "./Tabs";
+import ImageDropZone from './ImageDropZone';
 // import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
-import { Button, View, Text } from 'react';
 // import { NavigationContainer } from '@react-navigation/native';
 
 export const FileContext = createContext(null);
@@ -157,31 +157,102 @@ function print_ls() {
     });
 };
 
-function DetailsScreen({navigation}) {
+const PromptForm = () => {
+    function handleSubmit(e) {
+        // prevent the browser from reloading the page
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+
+        const formJson = Object.fromEntries(formData.entries());
+
+        console.log(formJson);
+    }
+
     return (
-        <div>
-        <text>Details Screen</text>
-        <button
-            title="Go to Details ... again"
-            onPress={() => navigation.navigate('Details')}>
-        Go to Details
-        </button>
+        <form method="post" onSubmit={handleSubmit}>
+            <label>
+                <textarea name="prompt" rows={4} cols={40}/>
+            </label>
+            <hr />
+            <button type="reset">Reset form</button>
+            <hr />
+            <button type="submit">Submit form</button>
+        </form>
+    );
+};
+
+// https://stackoverflow.com/questions/62239420/steps-to-populate-dynamic-dropdown-using-arrays-in-reactjs-using-react-hooks
+const Presets = () => {
+    const [selectedPreset, setSelectedPreset] = useState("");
+    const [selectedFilter, setSelectedFilter] = useState("");
+
+    const presetList = [
+        { name: 'Pixar' },
+        { name: 'Post-Apocalypse' },
+        { name: 'Zombie' },
+        { name: 'Picasso' },
+        { name: 'Cartoon' },
+        { name: 'Anime' },
+    ];
+
+    const filterList = [
+        { name: 'Old' },
+        { name: 'Glowing' },
+        { name: 'Young' },
+        { name: 'Rich' },
+        { name: 'Sexy' },
+        { name: 'Sad' },
+    ];
+
+    function handlePresetSelect(e) {
+        console.log("Selected preset", e.target.value);
+        setSelectedPreset(e.target.value);
+        setSelectedFilter("");
+    }
+
+    function handleFilterSelect(e) {
+        console.log("Selected filter", e.target.value);
+        setSelectedFilter(e.target.value);
+        setSelectedPreset("");
+    }
+
+    return (
+        <div className="App">
+            <h1>Preset Selection</h1>
+
+            <div className="Container">
+                <select
+                    name="Presets"
+                    onChange={e => handlePresetSelect(e)}
+                    value={selectedPreset}
+                >
+                    <option value="">Choose a preset</option>
+                    {presetList.map((preset, key) => (
+                        <option key={key} value={preset.name}>
+                            {preset.name}
+                        </option>
+                    ))}
+                </select>
+
+                <select
+                    name="Filters"
+                    onChange={e => handleFilterSelect(e)}
+                    value={selectedFilter}
+                >
+                    <option value="">Choose a filter</option>
+                    {filterList.map((filter, key) => (
+                        <option key={key} value={filter.name}>
+                            {filter.name}
+                        </option>
+                    ))}
+                </select>
+
+            </div>
         </div>
     );
-}
-
-function HomeScreen({ navigation }) {
-    return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text>Home Screen</Text>
-            <Button
-                title="Go to Details"
-                onPress={() => navigation.navigate('Details')}>
-            </Button>
-        </View>
-    );
-}
-
+};
 
 
 const App = () => {
@@ -214,22 +285,27 @@ const App = () => {
             <h1>Edit Video</h1>
             <Tabs>
             <div label="Prompt">
+                <PromptForm />
             </div>
             <div label="Preset">
+                <Presets />
             </div>
             <div label="From Image">
+                <ImageDropZone />
             </div>
             </Tabs>
+
+            <hr/>
+            <hr/>
+            <div>
+            <button>Convert</button>
+            </div>
         </div>
 
-        <div label="ls">
+        <div label="Export">
         <button onClick={print_ls}>
             run ls
         </button>
-        </div>
-
-        <div label="hello world">
-        <h1>Hello World</h1>
         </div>
 
         </Tabs>
