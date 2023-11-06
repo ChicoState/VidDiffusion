@@ -34,8 +34,7 @@ const ImageDropZone = (props) => {
         <div
             onDrop={onDrop}
             onDragOver={onDragOver}
-            className="select-none border-dashed border-4 bg-blue-50 border-blue-300 rounded-xl aspect-square w-full flex items-center justify-center">
-
+            className="mx-auto max-w-md select-none border-dashed border-4 bg-blue-50 border-blue-300 rounded-xl aspect-square w-full flex items-center justify-center">
 
             {imageSrc ? (
                 <>

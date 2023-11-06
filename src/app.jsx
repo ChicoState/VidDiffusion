@@ -154,6 +154,9 @@ const App = () => {
             <Header />
 
             <Tabs className={"px-4"}>
+                <div label="Upload Video">
+                    <ImageDropZone />
+                </div>
                 <div label="Edit">
                     <h1 className="font-bold mb-2">Edit Video</h1>
                     <Tabs>
@@ -165,6 +168,7 @@ const App = () => {
                         </div>
                         <div label="From Image">
                             <ImageDropZone />
+                            <Button type="submit">Generate</Button>
                         </div>
                     </Tabs>
                 </div >
