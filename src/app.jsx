@@ -15,90 +15,6 @@ const Header = () => {
     );
 };
 
-const DragAndDrop = () => {
-    const [isDraggedOver, setIsDraggedOver] = useState(false);
-    const { file, setFile } = useContext(FileContext);
-    const videoRef = createRef();
-
-    const dropHandler = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        // can't get this to work for some reason, just gives an empty array
-        // let file = e.dataTransfer.files[0];
-        // setSelectedFile(file.path);
-    };
-
-    const dragEnterHandler = () => {
-        console.log("entered/left");
-        setIsDraggedOver(!isDraggedOver);
-    }
-
-    document.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-    });
-
-    const clickHandler = (_e) => {
-        const input = document.getElementById("fileInput");
-        input.click();
-    };
-
-    const fileChanged = (_e) => {
-        const input = document.getElementById("fileInput");
-        setFile(input.files[0]);
-        console.log(input.files[0].path);
-        // ipc to main and run stable diffusion mods
-    };
-
-    useEffect(() => {
-        if (file && videoRef.current) {
-            let reader = new FileReader();
-            let videoSrc = document.querySelector("#video-source");
-            let videoElement = document.querySelector("#video-element");
-
-            reader.onload = (e) => {
-                console.log(e);
-                videoSrc.src = e.target.result;
-                videoSrc.type = "video/mp4";
-                console.log(videoSrc);
-                videoElement.load();
-            };
-
-            console.log(file);
-            reader.readAsDataURL(file);
-        }
-    }, [videoRef]);
-
-    return (
-        <div className="mx-auto w-52 flex flex-col gap-4">
-            {file ?
-                <video
-                    id="video-element"
-                    ref={videoRef}
-                    className="border-slate-700 border p-4 rounded-md bg-slate-50"
-                    controls>
-                    <source id="video-source" />
-                    Cannot load video source
-                </video>
-                : <button onDrop={dropHandler}
-                    onDragEnter={dragEnterHandler}
-                    onDragLeave={dragEnterHandler}
-                    onClick={clickHandler}
-                    className="select-none border-dashed border-4 bg-blue-50 border-blue-300 rounded-xl aspect-square w-full flex items-center justify-center">
-                    <span>
-                        Add your file
-                    </span>
-                    <input
-                        accept="video/*"
-                        onChange={fileChanged}
-                        id="fileInput" type="file" className="fixed top-[-100%]" />
-                </button>
-            }
-        </div>
-    );
-}
-
 const CodeBlock = ({ text }) => {
     const copyClick = () => {
         navigator.clipboard.writeText(text);
@@ -116,38 +32,6 @@ const CodeBlock = ({ text }) => {
         </div>
     )
 }
-
-const Tutorial = () => {
-    const { file, setFile: _setFile } = useContext(FileContext);
-
-    return (
-        <div className="mx-auto max-w-screen-sm py-6 px-8">
-            <ol className="list-decimal list-outside gap-4">
-                <li className="mb-4">
-                    First, split the file into frames
-                    <CodeBlock text={[
-                        "mkdir -p out",
-                        `ffmpeg -i ${file.path} out/img%04d.png`
-                    ].join("\n")} />
-
-                </li>
-                <li className="mb-4">
-                    Do stable diffusion stuff
-                    <CodeBlock text={[
-                        "I have absolutely no idea what goes here"
-                    ]} />
-                </li>
-                <li className="mb-4">
-                    Convert the frames back into a video
-                    <CodeBlock text={[
-                        `ffmpeg -i out/img%04d.png out.mkv`
-                    ].join("\n")} />
-
-                </li>
-            </ol>
-        </div>
-    );
-};
 
 function LsView() {
     let [lsOutput, setLsOutput] = useState("");
@@ -182,14 +66,10 @@ const PromptForm = () => {
     }
 
     return (
-        <form method="post" onSubmit={handleSubmit}>
-            <label>
-                <textarea name="prompt" rows={4} cols={40} />
-            </label>
-            <hr />
-            <button type="reset">Reset form</button>
-            <hr />
-            <button type="submit">Submit form</button>
+        <form onSubmit={handleSubmit}>
+            <textarea className="border-black rounded-md resize-y w-full border-2 p-2" name="prompt" />
+
+            <Button type="submit">Generate</Button>
         </form>
     );
 };
@@ -220,21 +100,20 @@ const Presets = () => {
     function handlePresetSelect(e) {
         console.log("Selected preset", e.target.value);
         setSelectedPreset(e.target.value);
-        setSelectedFilter("");
     }
 
     function handleFilterSelect(e) {
         console.log("Selected filter", e.target.value);
         setSelectedFilter(e.target.value);
-        setSelectedPreset("");
     }
+
+    const selectStyles = "p-2 border-2 border-black rounded-md"
 
     return (
         <div className="App">
-            <h1>Preset Selection</h1>
-
-            <div className="Container">
+            <div className="flex flex-col gap-4">
                 <select
+                    className={selectStyles}
                     name="Presets"
                     onChange={e => handlePresetSelect(e)}
                     value={selectedPreset}
@@ -249,6 +128,7 @@ const Presets = () => {
 
                 <select
                     name="Filters"
+                    className={selectStyles}
                     onChange={e => handleFilterSelect(e)}
                     value={selectedFilter}
                 >
@@ -260,6 +140,7 @@ const Presets = () => {
                     ))}
                 </select>
 
+                <Button type="submit">Generate</Button>
             </div>
         </div>
     );
@@ -273,21 +154,8 @@ const App = () => {
             <Header />
 
             <Tabs className={"px-4"}>
-                <div label="Video">
-                    <InstallBanner listOfItems={[
-                        { name: "conda", isInstalled: true },
-                        { name: "model", isInstalled: false },
-                        { name: "thing3", isInstalled: false },
-                        { name: "thing4", isInstalled: true },
-                        { name: "thing5", isInstalled: false },
-                    ]} />
-                    <DragAndDrop />
-                    {file && <Tutorial />}
-                </div >
-
-
                 <div label="Edit">
-                    <h1>Edit Video</h1>
+                    <h1 className="font-bold mb-2">Edit Video</h1>
                     <Tabs>
                         <div label="Prompt">
                             <PromptForm />
@@ -299,13 +167,20 @@ const App = () => {
                             <ImageDropZone />
                         </div>
                     </Tabs>
-
-                    <hr />
-                    <hr />
-                    <div>
-                        <button>Convert</button>
-                    </div>
                 </div >
+
+                <div label="Dependencies">
+                    <InstallBanner listOfItems={[
+                        { name: "conda", isInstalled: true },
+                        { name: "model", isInstalled: false },
+                        { name: "thing3", isInstalled: false },
+                        { name: "thing4", isInstalled: true },
+                        { name: "thing5", isInstalled: false },
+                    ]} />
+                    {file && <Tutorial />}
+                </div >
+
+
 
                 <div label="ls">
                     <LsView />

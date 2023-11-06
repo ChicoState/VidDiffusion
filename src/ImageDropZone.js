@@ -32,10 +32,10 @@ const ImageDropZone = (props) => {
 
     return (
         <div
-            className="dropzone"
             onDrop={onDrop}
             onDragOver={onDragOver}
-            style={{ border: '2px dashed gray', height: 200, position: 'relative' }}>
+            className="select-none border-dashed border-4 bg-blue-50 border-blue-300 rounded-xl aspect-square w-full flex items-center justify-center">
+
 
             {imageSrc ? (
                 <>
@@ -51,7 +51,7 @@ const ImageDropZone = (props) => {
                     </button>
                 </>
             ) : (
-                <p>Drag & Drop your image here</p>
+                <p>Add your file</p>
             )}
         </div>
     );
