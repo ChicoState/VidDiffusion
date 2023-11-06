@@ -4,6 +4,9 @@ const os = require('os');
 const fs = require('fs');
 const { doLs } = require("./DoLs.js");
 const Docker = require('dockerode');
+// const { buildImage, runContainer } = require('./DockerHelper.js');
+
+
 
 const isDev = process.env.NODE_ENV !== 'development';
 const isMac = process.platform === 'darwin';
@@ -107,3 +110,19 @@ function createContainer() {
         console.log(err);
     });
 }
+
+
+/*
+async function performDockerTasks() {
+    try {
+        await buildImage();
+        await runContainer();
+        console.log("Done");
+    } catch (error) {
+        console.error("Error during Docker operations:", error);
+    }
+}
+
+performDockerTasks();
+*/
+

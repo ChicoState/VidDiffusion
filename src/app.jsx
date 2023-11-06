@@ -1,6 +1,7 @@
 import React, { useState, createContext, useContext, createRef, useEffect } from "react";
 import { createRoot } from 'react-dom/client';
 import { InstallBanner } from "./InstallBanner.jsx";
+import ImageDropZone from './ImageDropZone';
 import { Tabs } from "./Tabs.jsx";
 import { Button } from "./Components.jsx";
 
@@ -168,15 +169,104 @@ function LsView() {
 
 }
 
-function print_ls() {
+const PromptForm = () => {
+    function handleSubmit(e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+
+        const formJson = Object.fromEntries(formData.entries());
+
+        console.log(formJson);
+    }
+
+    return (
+        <form method="post" onSubmit={handleSubmit}>
+            <label>
+                <textarea name="prompt" rows={4} cols={40} />
+            </label>
+            <hr />
+            <button type="reset">Reset form</button>
+            <hr />
+            <button type="submit">Submit form</button>
+        </form>
+    );
 };
+
+// https://stackoverflow.com/questions/62239420/steps-to-populate-dynamic-dropdown-using-arrays-in-reactjs-using-react-hooks
+const Presets = () => {
+    const [selectedPreset, setSelectedPreset] = useState("");
+    const [selectedFilter, setSelectedFilter] = useState("");
+
+    const presetList = [
+        { name: 'Pixar' },
+        { name: 'Post-Apocalypse' },
+        { name: 'Zombie' },
+        { name: 'Picasso' },
+        { name: 'Cartoon' },
+        { name: 'Anime' },
+    ];
+
+    const filterList = [
+        { name: 'Old' },
+        { name: 'Glowing' },
+        { name: 'Young' },
+        { name: 'Rich' },
+        { name: 'Sexy' },
+        { name: 'Sad' },
+    ];
+
+    function handlePresetSelect(e) {
+        console.log("Selected preset", e.target.value);
+        setSelectedPreset(e.target.value);
+        setSelectedFilter("");
+    }
+
+    function handleFilterSelect(e) {
+        console.log("Selected filter", e.target.value);
+        setSelectedFilter(e.target.value);
+        setSelectedPreset("");
+    }
+
+    return (
+        <div className="App">
+            <h1>Preset Selection</h1>
+
+            <div className="Container">
+                <select
+                    name="Presets"
+                    onChange={e => handlePresetSelect(e)}
+                    value={selectedPreset}
+                >
+                    <option value="">Choose a preset</option>
+                    {presetList.map((preset, key) => (
+                        <option key={key} value={preset.name}>
+                            {preset.name}
+                        </option>
+                    ))}
+                </select>
+
+                <select
+                    name="Filters"
+                    onChange={e => handleFilterSelect(e)}
+                    value={selectedFilter}
+                >
+                    <option value="">Choose a filter</option>
+                    {filterList.map((filter, key) => (
+                        <option key={key} value={filter.name}>
+                            {filter.name}
+                        </option>
+                    ))}
+                </select>
+
+            </div>
+        </div>
+    );
+}
 
 const App = () => {
     const [file, setFile] = useState(null);
-
-    // window.electronAPI.doLs().then((val) => {
-    //     console.log(`${val}`);
-    // });
 
     return (
         <FileContext.Provider value={{ file, setFile }}>
@@ -200,24 +290,29 @@ const App = () => {
                     <h1>Edit Video</h1>
                     <Tabs>
                         <div label="Prompt">
+                            <PromptForm />
                         </div>
                         <div label="Preset">
+                            <Presets />
                         </div>
                         <div label="From Image">
+                            <ImageDropZone />
                         </div>
                     </Tabs>
-                </div>
+
+                    <hr />
+                    <hr />
+                    <div>
+                        <button>Convert</button>
+                    </div>
+                </div >
 
                 <div label="ls">
                     <LsView />
                 </div>
 
-                <div label="hello world">
-                    <h1>Hello World</h1>
-                </div>
-
-            </Tabs>
-        </FileContext.Provider>
+            </Tabs >
+        </FileContext.Provider >
     );
 };
 
