@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Button } from "./Components.jsx";
 
 function InstallItem({ name, isInstalled }) {
     if (isInstalled) {
@@ -40,7 +41,7 @@ export function InstallBanner({
     }, [items, currentlyInstalling]);
 
     return (
-        <div className="px-4 mb-4 flex flex-col gap-2">
+        <div className="mb-4 flex flex-col gap-2">
             <span className="font-bold">Dependencies</span>
             <div className="flex gap-2">
                 {listOfItems.map((item, i) =>
@@ -52,10 +53,9 @@ export function InstallBanner({
                 )}
             </div>
             <div className="flex items-center gap-4">
-                <button
-                    className="flex-none shadow-md hover:shadow-lg transition-all px-4 py-2 rounded-sm text-white bg-green-500 hover:bg-green-400 active:bg-green-600 active:shadow-none"
-                    onClick={() => setCurrentlyInstalling(0)}
-                >Install</button>
+                <Button onClick={() => setCurrentlyInstalling(0)}>
+                    Install
+                </Button>
                 {currentlyInstalling !== null
                     && <span className="animate-pulse">Installing {items[currentlyInstalling].name}...</span>
                 }

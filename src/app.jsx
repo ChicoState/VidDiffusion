@@ -1,11 +1,8 @@
 import React, { useState, createContext, useContext, createRef, useEffect } from "react";
 import { createRoot } from 'react-dom/client';
 import { InstallBanner } from "./InstallBanner.jsx";
-import Tabs from "./Tabs";
-// import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-
-import { Button, View, Text } from 'react';
-// import { NavigationContainer } from '@react-navigation/native';
+import { Tabs } from "./Tabs.jsx";
+import { Button } from "./Components.jsx";
 
 export const FileContext = createContext(null);
 
@@ -151,93 +148,76 @@ const Tutorial = () => {
     );
 };
 
-function print_ls() {
-    window.electronAPI.doLs().then((val) => {
-        console.log(`${val}`);
-    });
-};
+function LsView() {
+    let [lsOutput, setLsOutput] = useState("");
 
-function DetailsScreen({navigation}) {
+    const updateLs = () => {
+        window.electronAPI.doLs().then((val) => {
+            setLsOutput(val);
+        });
+    }
+
     return (
-        <div>
-        <text>Details Screen</text>
-        <button
-            title="Go to Details ... again"
-            onPress={() => navigation.navigate('Details')}>
-        Go to Details
-        </button>
+        <div className="gap-4 flex flex-col">
+            <Button className={"mr-auto"} onClick={updateLs}>
+                Run LS
+            </Button>
+            <CodeBlock text={lsOutput} />
         </div>
     );
+
 }
 
-function HomeScreen({ navigation }) {
-    return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text>Home Screen</Text>
-            <Button
-                title="Go to Details"
-                onPress={() => navigation.navigate('Details')}>
-            </Button>
-        </View>
-    );
-}
-
-
+function print_ls() {
+};
 
 const App = () => {
     const [file, setFile] = useState(null);
 
-    window.electronAPI.doLs().then((val) => {
-        console.log(`${val}`);
-    });
-
+    // window.electronAPI.doLs().then((val) => {
+    //     console.log(`${val}`);
+    // });
 
     return (
-
         <FileContext.Provider value={{ file, setFile }}>
-        <Tabs>
-            <div label="Video">
-                <Header />
-                <InstallBanner listOfItems={[
-                    { name: "conda", isInstalled: true },
-                    { name: "model", isInstalled: false },
-                    { name: "thing3", isInstalled: false },
-                    { name: "thing4", isInstalled: true },
-                    { name: "thing5", isInstalled: false },
-                ]} />
-                <DragAndDrop />
-                {file && <Tutorial />}
-            </div >
+            <Header />
+
+            <Tabs className={"px-4"}>
+                <div label="Video">
+                    <InstallBanner listOfItems={[
+                        { name: "conda", isInstalled: true },
+                        { name: "model", isInstalled: false },
+                        { name: "thing3", isInstalled: false },
+                        { name: "thing4", isInstalled: true },
+                        { name: "thing5", isInstalled: false },
+                    ]} />
+                    <DragAndDrop />
+                    {file && <Tutorial />}
+                </div >
 
 
-        <div label="Edit">
-            <h1>Edit Video</h1>
-            <Tabs>
-            <div label="Prompt">
-            </div>
-            <div label="Preset">
-            </div>
-            <div label="From Image">
-            </div>
+                <div label="Edit">
+                    <h1>Edit Video</h1>
+                    <Tabs>
+                        <div label="Prompt">
+                        </div>
+                        <div label="Preset">
+                        </div>
+                        <div label="From Image">
+                        </div>
+                    </Tabs>
+                </div>
+
+                <div label="ls">
+                    <LsView />
+                </div>
+
+                <div label="hello world">
+                    <h1>Hello World</h1>
+                </div>
+
             </Tabs>
-        </div>
-
-        <div label="ls">
-        <button onClick={print_ls}>
-            run ls
-        </button>
-        </div>
-
-        <div label="hello world">
-        <h1>Hello World</h1>
-        </div>
-
-        </Tabs>
         </FileContext.Provider>
-
-
-
-
     );
 };
 
