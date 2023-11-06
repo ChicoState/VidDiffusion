@@ -42,8 +42,17 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
+    "-": "^0.0.1",
+    "@react-native-community/masked-view": "^0.1.11",
+    "dockerode": "^4.0.0",
+    "dom": "^0.0.3",
     "electron-squirrel-startup": "^1.0.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-native": "^0.72.6",
+    "react-native-gesture-handler": "^2.13.4",
+    "react-native-reanimated": "^3.5.4",
+    "react-tabs": "^6.0.2",
+    "util": "^0.12.5"
   }
 }
