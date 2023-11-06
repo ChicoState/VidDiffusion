@@ -9,6 +9,9 @@ rules.push({
 
 module.exports = {
     // Put your normal webpack config below here
+    externals: {
+        "react-native": true,
+    },
     module: {
         rules,
     },
