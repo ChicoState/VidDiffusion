@@ -6,6 +6,7 @@ import { Tabs } from "./Tabs.jsx";
 import { Button } from "./Components.jsx";
 
 export const FileContext = createContext(null);
+export const MainTabContext = createContext(null);
 
 const Header = () => {
     return (
@@ -146,51 +147,74 @@ const Presets = () => {
     );
 }
 
+const ContinueButton = () => {
+    const { file, setFile: _ } = useContext(FileContext);
+    const { activeTab: __, setActiveTab } = useContext(MainTabContext);
+
+    if (file) {
+        return <div className="w-full flex justify-center mt-4">
+            <Button className={"px-8"} onClick={() => setActiveTab(1)}>Edit ›</Button>
+        </div>
+    }
+}
+
+const EditView = () => {
+    const [activeTab, setActiveTab] = useState(0);
+
+    return <>
+        <h1 className="font-bold mb-2">Edit Video</h1>
+
+        <Tabs activeTab={activeTab} tabClicked={setActiveTab}>
+            <div label="Prompt">
+                <PromptForm />
+            </div>
+            <div label="Preset">
+                <Presets />
+            </div>
+            <div label="From Image">
+                <ImageDropZone />
+                <Button type="submit">Generate</Button>
+            </div>
+        </Tabs>
+    </>;
+};
+
 const App = () => {
     const [file, setFile] = useState(null);
+    const [activeTab, setActiveTab] = useState(0);
 
     return (
         <FileContext.Provider value={{ file, setFile }}>
-            <Header />
+            <MainTabContext.Provider value={{ activeTab, setActiveTab }}>
+                <Header />
 
-            <Tabs className={"px-4"}>
-                <div label="Upload Video">
-                    <ImageDropZone />
-                </div>
-                <div label="Edit">
-                    <h1 className="font-bold mb-2">Edit Video</h1>
-                    <Tabs>
-                        <div label="Prompt">
-                            <PromptForm />
-                        </div>
-                        <div label="Preset">
-                            <Presets />
-                        </div>
-                        <div label="From Image">
-                            <ImageDropZone />
-                            <Button type="submit">Generate</Button>
-                        </div>
-                    </Tabs>
-                </div >
+                <Tabs className={"px-4"} activeTab={activeTab} tabClicked={setActiveTab}>
+                    <div label="Upload Video">
+                        <ImageDropZone />
+                        <ContinueButton />
+                    </div>
+                    <div label="Edit">
+                        <EditView />
+                    </div >
 
-                <div label="Dependencies">
-                    <InstallBanner listOfItems={[
-                        { name: "conda", isInstalled: true },
-                        { name: "model", isInstalled: false },
-                        { name: "thing3", isInstalled: false },
-                        { name: "thing4", isInstalled: true },
-                        { name: "thing5", isInstalled: false },
-                    ]} />
-                    {file && <Tutorial />}
-                </div >
+                    <div label="Dependencies">
+                        <InstallBanner listOfItems={[
+                            { name: "conda", isInstalled: true },
+                            { name: "model", isInstalled: false },
+                            { name: "thing3", isInstalled: false },
+                            { name: "thing4", isInstalled: true },
+                            { name: "thing5", isInstalled: false },
+                        ]} />
+                    </div >
 
 
 
-                <div label="ls">
-                    <LsView />
-                </div>
+                    <div label="ls">
+                        <LsView />
+                    </div>
 
-            </Tabs >
+                </Tabs >
+            </ MainTabContext.Provider >
         </FileContext.Provider >
     );
 };

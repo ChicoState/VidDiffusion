@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 function Tab({ isActive, label, onClick }) {
     let dynamicClasses;
@@ -19,29 +19,27 @@ function Tab({ isActive, label, onClick }) {
     );
 }
 
-export function Tabs({ children, className }) {
-    let [activeTab, setActiveTab] = useState(children[0].props.label);
-
+export function Tabs({ children, className, activeTab, tabClicked }) {
     return (
         <div className={`flex flex-col gap-4 ${className}`}>
             <ol className="flex gap-2">
-                {children.map((child) => {
+                {children.map((child, i) => {
                     const { label } = child.props;
 
                     return (
                         <Tab
-                            isActive={activeTab == label}
+                            isActive={i == activeTab}
                             key={label}
                             label={label}
                             onClick={() => {
-                                setActiveTab(label);
+                                tabClicked(i);
                             }}
                         />
                     );
                 })}
             </ol>
 
-            {children.find((child) => child.props.label === activeTab)}
+            {children[activeTab]}
         </div>
     );
 }
