@@ -49,10 +49,31 @@
     "electron-squirrel-startup": "^1.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-dropzone": "^14.2.3",
     "react-native": "^0.72.6",
     "react-native-gesture-handler": "^2.13.4",
     "react-native-reanimated": "^3.5.4",
+    "react-router-dom": "^6.18.0",
     "react-tabs": "^6.0.2",
     "util": "^0.12.5"
-  }
+  },
+  "plugins": [
+     [
+       "@electron-forge/plugin-webpack",
+       {
+         "mainConfig": "./webpack.main.config.js",
+         "devContentSecurityPolicy":"default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;",
+         "renderer": {
+           "config": "./webpack.renderer.config.js",
+           "entryPoints": [
+             {
+               "html": "./src/index.html",
+               "js": "./src/renderer.ts",
+               "name": "main_window"
+             }
+           ]
+         }
+       }
+     ]
+   ]
 }

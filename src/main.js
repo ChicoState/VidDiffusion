@@ -6,6 +6,7 @@ const { doLs } = require("./DoLs.js");
 const Docker = require('dockerode');
 // const { buildImage, runContainer } = require('./DockerHelper.js');
 
+const { buildImage, runContainer } = require('./Docker.js');
 
 
 const isDev = process.env.NODE_ENV !== 'development';
@@ -45,6 +46,23 @@ app.on('ready', () => {
 
     createWindow();
 
+    performDockerTasks().then(() => {
+        var docker = new Docker();
+        docker.listContainers(
+            { all: true },
+            function(err, containers) {
+                console.log('total number of containers: ' + containers.length);
+                containers.forEach(function (container) {
+                    console.log(
+                        `Container ${container.Names} - ` +
+                        `current status ${container.Status} - ` +
+                        `based on image ${container.Image}`);
+                });
+            }
+        );
+    });
+
+
     // createContainer();
 });
 
@@ -80,39 +98,6 @@ function createDirectory(dirname) {
     }
 }
 
-function createContainer() {
-    var docker = new Docker();
-    var auxContainer;
-    docker.createContainer({
-        Image: 'ubuntu',
-        AttachStdin: false,
-        AttachStdout: true,
-        AttachStderr: true,
-        Tty: true,
-        Cmd: ['/bin/bash', '-c', 'tail -f /var/log/dmesg'],
-        OpenStdin: false,
-        StdinOnce: false
-    }).then(function(container) {
-        auxContainer = container;
-        return auxContainer.start();
-    }).then(function(data) {
-        return auxContainer.resize({
-            h: process.stdout.rows,
-            w: process.stdout.columns
-        });
-    }).then(function(data) {
-        return auxContainer.stop();
-    }).then(function(data) {
-        return auxContainer.remove();
-    }).then(function(data) {
-        console.log('container removed');
-    }).catch(function(err) {
-        console.log(err);
-    });
-}
-
-
-/*
 async function performDockerTasks() {
     try {
         await buildImage();
@@ -122,7 +107,4 @@ async function performDockerTasks() {
         console.error("Error during Docker operations:", error);
     }
 }
-
-performDockerTasks();
-*/
 

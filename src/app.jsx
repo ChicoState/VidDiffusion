@@ -1,11 +1,20 @@
-import React, { useState, createContext, useContext, createRef, useEffect } from "react";
+// app.jsx
+
+import React, {
+    useState,
+    createContext,
+    useContext,
+    createRef,
+    useEffect
+} from "react";
 import { createRoot } from 'react-dom/client';
 import { InstallBanner } from "./InstallBanner.jsx";
 import Tabs from "./Tabs";
 import ImageDropZone from './ImageDropZone';
-// import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-
-// import { NavigationContainer } from '@react-navigation/native';
+import SideBar from './SideBar.jsx';
+import { Button, Menu, Dropzone } from "./Components.jsx";
+import { PromptForm } from "./PromptForm.jsx";
+import { Link } from "react-router-dom";
 
 export const FileContext = createContext(null);
 
@@ -21,6 +30,10 @@ const DragAndDrop = () => {
     const [isDraggedOver, setIsDraggedOver] = useState(false);
     const { file, setFile } = useContext(FileContext);
     const videoRef = createRef();
+
+    const removeFile = () => {
+        setFile(null);
+    }
 
     const dropHandler = (e) => {
         e.preventDefault();
@@ -53,6 +66,7 @@ const DragAndDrop = () => {
         // ipc to main and run stable diffusion mods
     };
 
+
     useEffect(() => {
         if (file && videoRef.current) {
             let reader = new FileReader();
@@ -73,6 +87,7 @@ const DragAndDrop = () => {
     }, [videoRef]);
 
     return (
+        <>
         <div className="mx-auto w-52 flex flex-col gap-4">
             {file ?
                 <video
@@ -98,6 +113,19 @@ const DragAndDrop = () => {
                 </button>
             }
         </div>
+        <div>
+        { file ?
+        <Button
+            onClick={removeFile}
+            style={{ position: 'absolute', right: 10, top: 10 }}>
+            Remove
+            >
+        </Button>
+        :
+        <></>
+        }
+        </div>
+        </>
     );
 }
 
@@ -157,31 +185,26 @@ function print_ls() {
     });
 };
 
-const PromptForm = () => {
-    function handleSubmit(e) {
-        // prevent the browser from reloading the page
-        e.preventDefault();
+function LsView() {
+    let [lsOutput, setLsOutput] = useState("");
 
-        const form = e.target;
-        const formData = new FormData(form);
-
-        const formJson = Object.fromEntries(formData.entries());
-
-        console.log(formJson);
+    const updateLs = () => {
+        window.electronAPI.doLs().then((val) => {
+            setLsOutput(val);
+        });
     }
 
     return (
-        <form method="post" onSubmit={handleSubmit}>
-            <label>
-                <textarea name="prompt" rows={4} cols={40}/>
-            </label>
-            <hr />
-            <button type="reset">Reset form</button>
-            <hr />
-            <button type="submit">Submit form</button>
-        </form>
+        <div className="gap-4 flex flex-col">
+            <Button className={"mr-auto"} onClick={updateLs}>
+                Run LS
+            </Button>
+            <CodeBlock text={lsOutput} />
+        </div>
     );
-};
+
+}
+
 
 // https://stackoverflow.com/questions/62239420/steps-to-populate-dynamic-dropdown-using-arrays-in-reactjs-using-react-hooks
 const Presets = () => {
@@ -254,20 +277,10 @@ const Presets = () => {
     );
 };
 
-
-const App = () => {
+function ChooseFile() {
     const [file, setFile] = useState(null);
-
-    window.electronAPI.doLs().then((val) => {
-        console.log(`${val}`);
-    });
-
-
     return (
-
         <FileContext.Provider value={{ file, setFile }}>
-        <Tabs>
-            <div label="Video">
                 <Header />
                 <InstallBanner listOfItems={[
                     { name: "conda", isInstalled: true },
@@ -278,44 +291,70 @@ const App = () => {
                 ]} />
                 <DragAndDrop />
                 {file && <Tutorial />}
+        </FileContext.Provider>
+        );
+}
+
+const App = () => {
+    const [file, setFile] = useState(null);
+
+    window.electronAPI.doLs().then((val) => {
+        console.log(`${val}`);
+    });
+
+    return (
+    <>
+        <Menu />
+
+        <Tabs>
+            <div label="Video">
+                <FileContext.Provider value={{ file, setFile }}>
+                        <Header />
+                        <InstallBanner listOfItems={[
+                            { name: "conda", isInstalled: true },
+                            { name: "model", isInstalled: false },
+                            { name: "thing3", isInstalled: false },
+                            { name: "thing4", isInstalled: true },
+                            { name: "thing5", isInstalled: false },
+                        ]} />
+                        <DragAndDrop />
+                        <Dropzone />
+                        {file && <Tutorial />}
+                </FileContext.Provider>
             </div >
 
 
-        <div label="Edit">
-            <h1>Edit Video</h1>
-            <Tabs>
-            <div label="Prompt">
-                <PromptForm />
-            </div>
-            <div label="Preset">
-                <Presets />
-            </div>
-            <div label="From Image">
-                <ImageDropZone />
-            </div>
-            </Tabs>
+            <div label="Edit">
+                <h1>Edit Video</h1>
+                <Tabs>
+                <div label="Prompt">
+                    <PromptForm />
+                </div>
+                <div label="Preset">
+                    <Presets />
+                </div>
+                <div label="From Image">
+                    <ImageDropZone />
+                </div>
+                </Tabs>
 
-            <hr/>
-            <hr/>
-            <div>
-            <button>Convert</button>
+                <hr/>
+                <hr/>
+                <div>
+                <Button type="submit">Convert</Button>
+                </div>
             </div>
-        </div>
 
-        <div label="Export">
-        <button onClick={print_ls}>
-            run ls
-        </button>
-        </div>
+            <div label="Export">
+            <Button onClick={print_ls}>
+                run ls
+            </Button>
+            </div>
 
         </Tabs>
-        </FileContext.Provider>
 
-
-
-
+    </>
     );
 };
 
-const root = createRoot(document.getElementById("root"));
-root.render(<App />);
+export default App;

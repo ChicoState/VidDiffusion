@@ -28,4 +28,4 @@
 
 
 import './styles.css';
-import './app.jsx';
+import './main.jsx';
