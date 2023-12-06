@@ -4,9 +4,11 @@ import { InstallBanner } from "./InstallBanner.jsx";
 import ImageDropZone from './ImageDropZone';
 import { Tabs } from "./Tabs.jsx";
 import { Button } from "./Components.jsx";
+import { Dependencies } from "./Dependencies.jsx";
 
 export const FileContext = createContext(null);
 export const MainTabContext = createContext(null);
+export const DockerInstalledContext = createContext(false);
 
 const Header = () => {
     return (
@@ -182,40 +184,47 @@ const EditView = () => {
 const App = () => {
     const [file, setFile] = useState(null);
     const [activeTab, setActiveTab] = useState(0);
+    const [dockerInstalled, setDockerInstalled] = useState(false);
+
+    // on startup, we check whether or not docker is installed.
+    useEffect(async () => {
+        let res = await window.electronAPI.checkDockerInstalled();
+        setDockerInstalled(res);
+    }, []);
 
     return (
         <FileContext.Provider value={{ file, setFile }}>
             <MainTabContext.Provider value={{ activeTab, setActiveTab }}>
-                <Header />
+                <DockerInstalledContext.Provider value={{ dockerInstalled, setDockerInstalled }}>
+                    <Header />
 
-                <Tabs className={"px-4"} activeTab={activeTab} tabClicked={setActiveTab}>
-                    <div label="Upload Video">
-                        <ImageDropZone />
-                        <ContinueButton />
-                    </div>
-                    <div label="Edit">
-                        <EditView />
-                    </div >
+                    <Tabs className={"px-4"} activeTab={activeTab} tabClicked={setActiveTab}>
+                        <div label="Upload Video">
+                            <ImageDropZone />
+                            <ContinueButton />
+                        </div>
+                        <div label="Edit">
+                            <EditView />
+                        </div >
 
-                    <div label="Dependencies">
-                        <InstallBanner listOfItems={[
-                            { name: "conda", isInstalled: true },
-                            { name: "model", isInstalled: false },
-                            { name: "thing3", isInstalled: false },
-                            { name: "thing4", isInstalled: true },
-                            { name: "thing5", isInstalled: false },
-                        ]} />
-                    </div >
+                        <div label="Dependencies">
+                            <Dependencies />
+                        </div >
 
+                        <div label="ls">
+                            <LsView />
+                        </div>
 
+                    </Tabs >
 
-                    <div label="ls">
-                        <LsView />
-                    </div>
-
-                </Tabs >
-            </ MainTabContext.Provider >
-        </FileContext.Provider >
+                    {!dockerInstalled && <div className="fixed shadow-md flex items-center gap-2 w-min p-2 rounded bg-slate-800 inset-x-0 mx-auto bottom-4">
+                        <span className="text-yellow-500 font-bold pl-2">Warning: </span>
+                        <span className="text-white whitespace-nowrap">Missing dependencies.</span>
+                        <Button className="ml-2" onClick={() => setActiveTab(2)}>Install</Button>
+                    </div>}
+                </DockerInstalledContext.Provider>
+            </MainTabContext.Provider>
+        </FileContext.Provider>
     );
 };
 

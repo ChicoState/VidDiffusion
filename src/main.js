@@ -2,8 +2,8 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const { doLs } = require("./DoLs.js");
 const Docker = require('dockerode');
+const { checkDockerInstalled } = require('./Docker.js');
 // const { buildImage, runContainer } = require('./DockerHelper.js');
 
 const isDev = process.env.NODE_ENV !== 'development';
@@ -39,7 +39,7 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
-    ipcMain.handle('do-ls', doLs);
+    ipcMain.handle('check-docker-installed', checkDockerInstalled);
 
     createWindow();
 

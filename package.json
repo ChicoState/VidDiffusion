@@ -44,6 +44,7 @@
         "webpack-dev-server": "^4.15.1"
     },
     "dependencies": {
+        "dockernode": "^0.1.0",
         "dockerode": "^4.0.0",
         "electron-squirrel-startup": "^1.0.0",
         "react": "^18.2.0",
