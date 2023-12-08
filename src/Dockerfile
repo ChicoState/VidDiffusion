@@ -25,4 +25,5 @@ CMD ["python", "demo.py", "--prompt", "Street-art painting of retired Vin Diesel
 # The output will likely be a file, let's assume it's called "output.png" for now
 # We'll use VOLUME to ensure it's accessible outside the container
 VOLUME ["/app/output"]
+VOLUME ["/app/cache" ]
 

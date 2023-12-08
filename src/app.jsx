@@ -7,16 +7,18 @@ import React, {
     createRef,
     useEffect
 } from "react";
+
 import { createRoot } from 'react-dom/client';
 import { InstallBanner } from "./InstallBanner.jsx";
-import Tabs from "./Tabs";
 import ImageDropZone from './ImageDropZone';
-import SideBar from './SideBar.jsx';
-import { Button, Menu, Dropzone } from "./Components.jsx";
-import { PromptForm } from "./PromptForm.jsx";
-import { Link } from "react-router-dom";
+import { Tabs } from "./Tabs.jsx";
+import { Button } from "./Components.jsx";
+import { Dependencies } from "./Dependencies.jsx";
 
 export const FileContext = createContext(null);
+export const MainTabContext = createContext(null);
+export const DockerInstalledContext = createContext(false);
+export const StableDiffusionSetupContext = createContext(false);
 
 const Header = () => {
     return (
@@ -26,6 +28,172 @@ const Header = () => {
     );
 };
 
+
+const CodeBlock = ({ text }) => {
+    const copyClick = () => {
+        navigator.clipboard.writeText(text);
+    };
+
+    return (
+        <div className="relative">
+            <pre className="bg-slate-50 border border-slate-300 text-slate-800 p-2 rounded-md overflow-x-auto">
+                {text}
+
+            </pre>
+            <button onClick={copyClick} className="aspect-square absolute top-1 right-2 hover:underline">
+                copy
+            </button>
+        </div>
+    )
+}
+
+function LsView() {
+    let [lsOutput, setLsOutput] = useState("");
+
+    const updateLs = () => {
+        window.electronAPI.doLs().then((val) => {
+            setLsOutput(val);
+        });
+    }
+
+    return (
+        <div className="gap-4 flex flex-col">
+            <Button className={"mr-auto"} onClick={updateLs}>
+                Run LS
+            </Button>
+            <CodeBlock text={lsOutput} />
+        </div>
+    );
+
+}
+
+const PromptForm = () => {
+
+    function handleSubmit(e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+
+        const formJson = Object.fromEntries(formData.entries());
+
+        console.log(formJson);
+    }
+    return (
+        <form onSubmit={handleSubmit}>
+            <textarea className="border-black rounded-md resize-y w-full border-2 p-2" name="prompt" />
+
+            <Button type="submit">Generate</Button>
+        </form>
+    );
+}
+
+// https://stackoverflow.com/questions/62239420/steps-to-populate-dynamic-dropdown-using-arrays-in-reactjs-using-react-hooks
+const Presets = () => {
+    const [selectedPreset, setSelectedPreset] = useState("");
+    const [selectedFilter, setSelectedFilter] = useState("");
+
+    const presetList = [
+        { name: 'Pixar' },
+        { name: 'Post-Apocalypse' },
+        { name: 'Zombie' },
+        { name: 'Picasso' },
+        { name: 'Cartoon' },
+        { name: 'Anime' },
+    ];
+
+    const filterList = [
+        { name: 'Old' },
+        { name: 'Glowing' },
+        { name: 'Young' },
+        { name: 'Rich' },
+        { name: 'Sexy' },
+        { name: 'Sad' },
+    ];
+
+    function handlePresetSelect(e) {
+        console.log("Selected preset", e.target.value);
+        setSelectedPreset(e.target.value);
+    }
+
+    function handleFilterSelect(e) {
+        console.log("Selected filter", e.target.value);
+        setSelectedFilter(e.target.value);
+    }
+
+    const selectStyles = "p-2 border-2 border-black rounded-md"
+
+    return (
+        <div className="App">
+            <div className="flex flex-col gap-4">
+                <select
+                    className={selectStyles}
+                    name="Presets"
+                    onChange={e => handlePresetSelect(e)}
+                    value={selectedPreset}
+                >
+                    <option value="">Choose a preset</option>
+                    {presetList.map((preset, key) => (
+                        <option key={key} value={preset.name}>
+                            {preset.name}
+                        </option>
+                    ))}
+                </select>
+
+                <select
+                    name="Filters"
+                    className={selectStyles}
+                    onChange={e => handleFilterSelect(e)}
+                    value={selectedFilter}
+                >
+                    <option value="">Choose a filter</option>
+                    {filterList.map((filter, key) => (
+                        <option key={key} value={filter.name}>
+                            {filter.name}
+                        </option>
+                    ))}
+                </select>
+
+                <Button type="submit">Generate</Button>
+            </div>
+        </div>
+    );
+}
+
+const ContinueButton = () => {
+    const { file, setFile: _ } = useContext(FileContext);
+    const { activeTab: __, setActiveTab } = useContext(MainTabContext);
+
+    if (file) {
+        return <div className="w-full flex justify-center mt-4">
+            <Button className={"px-8"} onClick={() => setActiveTab(1)}>Edit ›</Button>
+        </div>
+    }
+}
+
+
+const EditView = () => {
+    const [activeTab, setActiveTab] = useState(0);
+
+    return <>
+        <h1 className="font-bold mb-2">Edit Video</h1>
+
+        <Tabs activeTab={activeTab} tabClicked={setActiveTab}>
+            <div label="Prompt">
+                <PromptForm />
+            </div>
+            <div label="Preset">
+                <Presets />
+            </div>
+            <div label="From Image">
+                <ImageDropZone />
+                <Button type="submit">Generate</Button>
+            </div>
+        </Tabs>
+    </>;
+};
+
+/*
 const DragAndDrop = () => {
     const [isDraggedOver, setIsDraggedOver] = useState(false);
     const { file, setFile } = useContext(FileContext);
@@ -128,233 +296,68 @@ const DragAndDrop = () => {
         </>
     );
 }
-
-const CodeBlock = ({ text }) => {
-    const copyClick = () => {
-        navigator.clipboard.writeText(text);
-    };
-
-    return (
-        <div className="relative">
-            <pre className="bg-slate-50 border border-slate-300 text-slate-800 p-2 rounded-md overflow-x-auto">
-                {text}
-
-            </pre>
-            <button onClick={copyClick} className="aspect-square absolute top-1 right-2 hover:underline">
-                copy
-            </button>
-        </div>
-    )
-}
-
-const Tutorial = () => {
-    const { file, setFile: _setFile } = useContext(FileContext);
-
-    return (
-        <div className="mx-auto max-w-screen-sm py-6 px-8">
-            <ol className="list-decimal list-outside gap-4">
-                <li className="mb-4">
-                    First, split the file into frames
-                    <CodeBlock text={[
-                        "mkdir -p out",
-                        `ffmpeg -i ${file.path} out/img%04d.png`
-                    ].join("\n")} />
-
-                </li>
-                <li className="mb-4">
-                    Do stable diffusion stuff
-                    <CodeBlock text={[
-                        "I have absolutely no idea what goes here"
-                    ]} />
-                </li>
-                <li className="mb-4">
-                    Convert the frames back into a video
-                    <CodeBlock text={[
-                        `ffmpeg -i out/img%04d.png out.mkv`
-                    ].join("\n")} />
-
-                </li>
-            </ol>
-        </div>
-    );
-};
-
-function print_ls() {
-    window.electronAPI.doLs().then((val) => {
-        console.log(`${val}`);
-    });
-};
-
-function LsView() {
-    let [lsOutput, setLsOutput] = useState("");
-
-    const updateLs = () => {
-        window.electronAPI.doLs().then((val) => {
-            setLsOutput(val);
-        });
-    }
-
-    return (
-        <div className="gap-4 flex flex-col">
-            <Button className={"mr-auto"} onClick={updateLs}>
-                Run LS
-            </Button>
-            <CodeBlock text={lsOutput} />
-        </div>
-    );
-
-}
-
-
-// https://stackoverflow.com/questions/62239420/steps-to-populate-dynamic-dropdown-using-arrays-in-reactjs-using-react-hooks
-const Presets = () => {
-    const [selectedPreset, setSelectedPreset] = useState("");
-    const [selectedFilter, setSelectedFilter] = useState("");
-
-    const presetList = [
-        { name: 'Pixar' },
-        { name: 'Post-Apocalypse' },
-        { name: 'Zombie' },
-        { name: 'Picasso' },
-        { name: 'Cartoon' },
-        { name: 'Anime' },
-    ];
-
-    const filterList = [
-        { name: 'Old' },
-        { name: 'Glowing' },
-        { name: 'Young' },
-        { name: 'Rich' },
-        { name: 'Sexy' },
-        { name: 'Sad' },
-    ];
-
-    function handlePresetSelect(e) {
-        console.log("Selected preset", e.target.value);
-        setSelectedPreset(e.target.value);
-        setSelectedFilter("");
-    }
-
-    function handleFilterSelect(e) {
-        console.log("Selected filter", e.target.value);
-        setSelectedFilter(e.target.value);
-        setSelectedPreset("");
-    }
-
-    return (
-        <div className="App">
-            <h1>Preset Selection</h1>
-
-            <div className="Container">
-                <select
-                    name="Presets"
-                    onChange={e => handlePresetSelect(e)}
-                    value={selectedPreset}
-                >
-                    <option value="">Choose a preset</option>
-                    {presetList.map((preset, key) => (
-                        <option key={key} value={preset.name}>
-                            {preset.name}
-                        </option>
-                    ))}
-                </select>
-
-                <select
-                    name="Filters"
-                    onChange={e => handleFilterSelect(e)}
-                    value={selectedFilter}
-                >
-                    <option value="">Choose a filter</option>
-                    {filterList.map((filter, key) => (
-                        <option key={key} value={filter.name}>
-                            {filter.name}
-                        </option>
-                    ))}
-                </select>
-
-            </div>
-        </div>
-    );
-};
-
-function ChooseFile() {
-    const [file, setFile] = useState(null);
-    return (
-        <FileContext.Provider value={{ file, setFile }}>
-                <Header />
-                <InstallBanner listOfItems={[
-                    { name: "conda", isInstalled: true },
-                    { name: "model", isInstalled: false },
-                    { name: "thing3", isInstalled: false },
-                    { name: "thing4", isInstalled: true },
-                    { name: "thing5", isInstalled: false },
-                ]} />
-                <DragAndDrop />
-                {file && <Tutorial />}
-        </FileContext.Provider>
-        );
-}
+*/
 
 const App = () => {
     const [file, setFile] = useState(null);
+    const [activeTab, setActiveTab] = useState(0);
+    const [dockerInstalled, setDockerInstalled] = useState(false);
+    const [stableDiffusionInstalled, setStableDiffusionInstalled] = useState(false);
 
-    window.electronAPI.doLs().then((val) => {
-        console.log(`${val}`);
-    });
+    // on startup, we check whether or not docker is installed.
+    useEffect(async () => {
+        let res = await window.electronAPI.checkDockerInstalled();
+        setDockerInstalled(res);
+
+        res = await window.electronAPI.checkVidDiffusion();
+        setStableDiffusionInstalled(res);
+
+        if (!res) {
+            res = await window.electronAPI.buildContainer();
+            setStableDiffusionInstalled(true);
+        }
+    }, []);
+
 
     return (
-    <>
-        <Menu />
-
-        <Tabs>
-            <div label="Video">
-                <FileContext.Provider value={{ file, setFile }}>
+        <FileContext.Provider value={{ file, setFile }}>
+            <MainTabContext.Provider value={{ activeTab, setActiveTab }}>
+                <DockerInstalledContext.Provider value={{ dockerInstalled, setDockerInstalled }}>
+                    <StableDiffusionSetupContext.Provider value={{ stableDiffusionInstalled, setStableDiffusionInstalled }}>
                         <Header />
-                        <InstallBanner listOfItems={[
-                            { name: "conda", isInstalled: true },
-                            { name: "model", isInstalled: false },
-                            { name: "thing3", isInstalled: false },
-                            { name: "thing4", isInstalled: true },
-                            { name: "thing5", isInstalled: false },
-                        ]} />
-                        <DragAndDrop />
-                        <Dropzone />
-                        {file && <Tutorial />}
-                </FileContext.Provider>
-            </div >
 
+                        <Tabs className={"px-4"} activeTab={activeTab} tabClicked={setActiveTab}>
+                            <div label="Upload Video">
+                                <ImageDropZone />
+                                <ContinueButton />
+                            </div>
 
-            <div label="Edit">
-                <h1>Edit Video</h1>
-                <Tabs>
-                <div label="Prompt">
-                    <PromptForm />
-                </div>
-                <div label="Preset">
-                    <Presets />
-                </div>
-                <div label="From Image">
-                    <ImageDropZone />
-                </div>
-                </Tabs>
+                            <div label="Edit">
+                                <EditView />
+                            </div >
 
-                <hr/>
-                <hr/>
-                <div>
-                <Button type="submit">Convert</Button>
-                </div>
-            </div>
+                            <div label="Dependencies">
+                                <Dependencies />
+                            </div >
 
-            <div label="Export">
-            <Button onClick={print_ls}>
-                run ls
-            </Button>
-            </div>
+                            <div label="ls">
+                                <LsView />
+                            </div>
+                        </Tabs>
 
-        </Tabs>
-
-    </>
+                        {!dockerInstalled && <div className="fixed shadow-md flex items-center gap-2 w-min p-2 rounded bg-slate-800 inset-x-0 mx-auto bottom-4">
+                            <span className="text-yellow-500 font-bold pl-2">Warning: </span>
+                            <span className="text-white whitespace-nowrap">Missing dependencies.</span>
+                            <Button className="ml-2" onClick={() => setActiveTab(2)}>Install</Button>
+                        </div>}
+                    </StableDiffusionSetupContext.Provider>
+                </DockerInstalledContext.Provider>
+            </MainTabContext.Provider>
+        </FileContext.Provider>
     );
+
 };
 
-export default App;
+
+const root = createRoot(document.getElementById("root"));
+root.render(<App />);
