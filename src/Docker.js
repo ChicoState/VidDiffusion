@@ -133,12 +133,10 @@ export async function runContainer() {
                 Image: 'viddiffusion',
                 // Cmd: ["python", "demo.py", "--prompt", promptstr],
                 // Cmd: [ "bash" ],
-                /*
-                Cmd: [
-                    "python", "demo.py", "--prompt", promptstr,
-                    "--output", "output/out1.png"
-                ],
-                */
+                // Cmd: [
+                //     "python", "demo.py", "--prompt", promptstr,
+                //     "--output", "output/out1.png"
+                // ],
                 Volumes: {
                     '/app/output': {}
                 },
@@ -174,13 +172,11 @@ export async function runContainer() {
                 AttachStdout: true
             });
 
-            /*
-            container.exec({
-                Cmd: ["mv", "out1.png", "output"],
-                AttachStdin: true,
-                AttachStdout: true
-            });
-            */
+            // container.exec({
+            //     Cmd: ["mv", "out1.png", "output"],
+            //     AttachStdin: true,
+            //     AttachStdout: true
+            // });
 
         } catch (error) {
             reject(error);
