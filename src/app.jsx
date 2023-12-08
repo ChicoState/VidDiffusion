@@ -9,6 +9,7 @@ import { Dependencies } from "./Dependencies.jsx";
 export const FileContext = createContext(null);
 export const MainTabContext = createContext(null);
 export const DockerInstalledContext = createContext(false);
+export const StableDiffusionSetupContext = createContext(false);
 
 const Header = () => {
     return (
@@ -185,43 +186,54 @@ const App = () => {
     const [file, setFile] = useState(null);
     const [activeTab, setActiveTab] = useState(0);
     const [dockerInstalled, setDockerInstalled] = useState(false);
+    const [stableDiffusionInstalled, setStableDiffusionInstalled] = useState(false);
 
     // on startup, we check whether or not docker is installed.
     useEffect(async () => {
         let res = await window.electronAPI.checkDockerInstalled();
         setDockerInstalled(res);
+
+        res = await window.electronAPI.checkVidDiffusion();
+        setStableDiffusionInstalled(res);
+
+        if (!res) {
+            res = await window.electronAPI.buildContainer();
+            setStableDiffusionInstalled(true);
+        }
     }, []);
 
     return (
         <FileContext.Provider value={{ file, setFile }}>
             <MainTabContext.Provider value={{ activeTab, setActiveTab }}>
                 <DockerInstalledContext.Provider value={{ dockerInstalled, setDockerInstalled }}>
-                    <Header />
+                    <StableDiffusionSetupContext.Provider value={{ stableDiffusionInstalled, setStableDiffusionInstalled }}>
+                        <Header />
 
-                    <Tabs className={"px-4"} activeTab={activeTab} tabClicked={setActiveTab}>
-                        <div label="Upload Video">
-                            <ImageDropZone />
-                            <ContinueButton />
-                        </div>
-                        <div label="Edit">
-                            <EditView />
-                        </div >
+                        <Tabs className={"px-4"} activeTab={activeTab} tabClicked={setActiveTab}>
+                            <div label="Upload Video">
+                                <ImageDropZone />
+                                <ContinueButton />
+                            </div>
 
-                        <div label="Dependencies">
-                            <Dependencies />
-                        </div >
+                            <div label="Edit">
+                                <EditView />
+                            </div >
 
-                        <div label="ls">
-                            <LsView />
-                        </div>
+                            <div label="Dependencies">
+                                <Dependencies />
+                            </div >
 
-                    </Tabs >
+                            <div label="ls">
+                                <LsView />
+                            </div>
+                        </Tabs>
 
-                    {!dockerInstalled && <div className="fixed shadow-md flex items-center gap-2 w-min p-2 rounded bg-slate-800 inset-x-0 mx-auto bottom-4">
-                        <span className="text-yellow-500 font-bold pl-2">Warning: </span>
-                        <span className="text-white whitespace-nowrap">Missing dependencies.</span>
-                        <Button className="ml-2" onClick={() => setActiveTab(2)}>Install</Button>
-                    </div>}
+                        {!dockerInstalled && <div className="fixed shadow-md flex items-center gap-2 w-min p-2 rounded bg-slate-800 inset-x-0 mx-auto bottom-4">
+                            <span className="text-yellow-500 font-bold pl-2">Warning: </span>
+                            <span className="text-white whitespace-nowrap">Missing dependencies.</span>
+                            <Button className="ml-2" onClick={() => setActiveTab(2)}>Install</Button>
+                        </div>}
+                    </StableDiffusionSetupContext.Provider>
                 </DockerInstalledContext.Provider>
             </MainTabContext.Provider>
         </FileContext.Provider>

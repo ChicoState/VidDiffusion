@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 
-import { DockerInstalledContext } from "./app.jsx";
+import { DockerInstalledContext, StableDiffusionSetupContext } from "./app.jsx";
 
 function MissingBadge() {
     return (
@@ -20,7 +20,7 @@ function InstalledBadge() {
 
 export function Dependencies() {
     const { dockerInstalled, setDockerInstalled } = useContext(DockerInstalledContext);
-    const { dockerInstalled: stableDiffusionInstalled, setDockerInstalled: _ } = useContext(DockerInstalledContext);
+    const { stableDiffusionInstalled, setStableDiffusionInstalled } = useContext(StableDiffusionSetupContext);
 
     return (
         <div className="flex flex-col gap-4 px-2 lg:w-3/4 mx-auto">
@@ -37,7 +37,9 @@ export function Dependencies() {
             <div>
                 <div className="flex items-center">
                     <span className="font-bold">StableDiffusion</span>
-                    {stableDiffusionInstalled ? <InstalledBadge /> : <MissingBadge />}
+                    <div className="ml-auto cursor-pointer" onClick={() => {
+                        setStableDiffusionInstalled(true);
+                    }}>{stableDiffusionInstalled ? <InstalledBadge /> : <MissingBadge />}</div>
                 </div>
             </div>
         </div>

@@ -3,7 +3,7 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const Docker = require('dockerode');
-const { checkDockerInstalled } = require('./Docker.js');
+const { checkDockerInstalled, checkVidDiffusionContainer, buildContainer } = require('./Docker.js');
 // const { buildImage, runContainer } = require('./DockerHelper.js');
 
 const isDev = process.env.NODE_ENV !== 'development';
@@ -40,10 +40,10 @@ const createWindow = () => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
     ipcMain.handle('check-docker-installed', checkDockerInstalled);
+    ipcMain.handle('check-vid-diffusion', checkVidDiffusionContainer);
+    ipcMain.handle('build-container', buildContainer);
 
     createWindow();
-
-    // createContainer();
 });
 
 
