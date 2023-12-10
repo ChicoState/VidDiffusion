@@ -47,6 +47,7 @@
         "dockernode": "^0.1.0",
         "dockerode": "^4.0.0",
         "electron-squirrel-startup": "^1.0.0",
+        "node-fetch": "^2.7.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0"
     }

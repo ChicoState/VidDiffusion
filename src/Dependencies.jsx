@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 
-import { DockerInstalledContext, StableDiffusionSetupContext } from "./app.jsx";
+import { DockerInstalledContext, FfmpegInstalledContext, StableDiffusionSetupContext } from "./app.jsx";
 
 function MissingBadge() {
     return (
@@ -20,6 +20,7 @@ function InstalledBadge() {
 
 export function Dependencies() {
     const { dockerInstalled, setDockerInstalled } = useContext(DockerInstalledContext);
+    const { ffmpegInstalled, setFfmpegInstalled } = useContext(FfmpegInstalledContext);
     const { stableDiffusionInstalled, setStableDiffusionInstalled } = useContext(StableDiffusionSetupContext);
 
     return (
@@ -31,6 +32,16 @@ export function Dependencies() {
                 </div>
                 {!dockerInstalled && <div className="text-neutral-700">
                     The Docker daemon is either not installed or not running. To install Docker, consult <a className="text-blue-500 hover:underline" href="https://docs.docker.com/engine/install">the Docker documentation.</a>
+                </div>}
+            </div>
+
+            <div className="flex flex-col">
+                <div className="flex items-center">
+                    <span className="font-bold">FFmpeg</span>
+                    {ffmpegInstalled ? <InstalledBadge /> : <MissingBadge />}
+                </div>
+                {!ffmpegInstalled && <div className="text-neutral-700">
+                    For installation instructures see <a className="text-blue-500 hover:underline" href="https://ffmpeg.org">the FFmpeg website.</a>
                 </div>}
             </div>
 
