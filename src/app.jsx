@@ -18,6 +18,7 @@ import { Dependencies } from "./Dependencies.jsx";
 export const FileContext = createContext(null);
 export const MainTabContext = createContext(null);
 export const DockerInstalledContext = createContext(false);
+export const FfmpegInstalledContext = createContext(false);
 export const StableDiffusionSetupContext = createContext(false);
 
 const Header = () => {
@@ -81,9 +82,13 @@ const PromptForm = () => {
     }
     return (
         <form onSubmit={handleSubmit}>
+            <h1 className="font-bold">Edit Video</h1>
+
+            <p className="text-neutral-700 mb-2">Enter a prompt to transform your video into another style.</p>
+
             <textarea className="border-black rounded-md resize-y w-full border-2 p-2" name="prompt" />
 
-            <Button type="submit">Generate</Button>
+            <Button type="submit">Update Style</Button>
         </form>
     );
 }
@@ -171,26 +176,54 @@ const ContinueButton = () => {
     }
 }
 
+const ImageFramesView = () => {
+    const { file, setFile: _ } = useContext(FileContext);
+
+    const [images, setImages] = useState([]);
+    const [resultImages, setResultImages] = useState([])
+
+    const [loading, setIsLoading] = useState([]);
+
+    const PREFIX = "/Users/kilometers/Projects/VidDiffusion";
+
+    const generateImages = async () => {
+        console.log(file.path);
+        let files = await window.electronAPI.videoToImages(file.path);
+        setImages(files);
+    };
+
+    return (
+        <div className="flex flex-col gap-4">
+            <div className="flex items-center">
+                <h1 className="font-bold">Image Frames</h1>
+                <Button className="ml-auto" onClick={generateImages}>Generate Images</Button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 items-center justify-items-center mb-8">
+                {images.map((image, i) =>
+                    <>
+                        <img className="rounded-md shadow-md" key={`${image}-1`} src={`file://${PREFIX}/videoImages/${image}?someQueryParam=false`}></img>
+                        <span key={`${image}-2`} className="text-2xl">→</span>
+                        {resultImages[i]
+                            ? <img key={`${image}-3`} src={`file://${PREFIX}/${resultImages[i]}`}></img>
+                            : <div
+                                key={`${image}-3`}
+                                className={`${loading[i] ? "animate-pulse" : ""} font-mono aspect-square bg-neutral-200 p-5 rounded-md flex items-center justify-items-center`}><span>NOT GENERATED</span></div>}
+                    </>
+                )}
+            </div>
+        </div>
+    );
+};
 
 const EditView = () => {
     const [activeTab, setActiveTab] = useState(0);
 
-    return <>
-        <h1 className="font-bold mb-2">Edit Video</h1>
+    return <div className="flex flex-col gap-4">
+        <PromptForm />
 
-        <Tabs activeTab={activeTab} tabClicked={setActiveTab}>
-            <div label="Prompt">
-                <PromptForm />
-            </div>
-            <div label="Preset">
-                <Presets />
-            </div>
-            <div label="From Image">
-                <ImageDropZone />
-                <Button type="submit">Generate</Button>
-            </div>
-        </Tabs>
-    </>;
+        <ImageFramesView />
+    </div>;
 };
 
 /*
@@ -302,55 +335,66 @@ const App = () => {
     const [file, setFile] = useState(null);
     const [activeTab, setActiveTab] = useState(0);
     const [dockerInstalled, setDockerInstalled] = useState(false);
+    const [ffmpegInstalled, setFfmpegInstalled] = useState(false);
     const [stableDiffusionInstalled, setStableDiffusionInstalled] = useState(false);
 
     // on startup, we check whether or not docker is installed.
-    useEffect(async () => {
-        let res = await window.electronAPI.checkDockerInstalled();
-        setDockerInstalled(res);
+    useEffect(() => {
+        try {
+            (async () => {
+                let res = await window.electronAPI.checkDockerInstalled();
+                setDockerInstalled(res);
 
-        res = await window.electronAPI.checkVidDiffusion();
-        setStableDiffusionInstalled(res);
+                res = await window.electronAPI.checkFfmpegInstalled();
+                setFfmpegInstalled(res);
 
-        if (!res) {
-            res = await window.electronAPI.buildContainer();
-            setStableDiffusionInstalled(true);
+                res = await window.electronAPI.checkVidDiffusion();
+                setStableDiffusionInstalled(res);
+
+                if (!res) {
+                    res = await window.electronAPI.buildContainer();
+                    setStableDiffusionInstalled(true);
+                }
+            })();
+        } catch (e) {
+            console.log(e);
         }
-    }, []);
+    }
+        , []);
+
+    // TODO: gray out Edit tab until file is selected to prevent user from attempting invalid action.
 
 
     return (
         <FileContext.Provider value={{ file, setFile }}>
             <MainTabContext.Provider value={{ activeTab, setActiveTab }}>
                 <DockerInstalledContext.Provider value={{ dockerInstalled, setDockerInstalled }}>
-                    <StableDiffusionSetupContext.Provider value={{ stableDiffusionInstalled, setStableDiffusionInstalled }}>
-                        <Header />
+                    <FfmpegInstalledContext.Provider value={{ ffmpegInstalled, setFfmpegInstalled }}>
+                        <StableDiffusionSetupContext.Provider value={{ stableDiffusionInstalled, setStableDiffusionInstalled }}>
+                            <Header />
 
-                        <Tabs className={"px-4"} activeTab={activeTab} tabClicked={setActiveTab}>
-                            <div label="Upload Video">
-                                <ImageDropZone />
-                                <ContinueButton />
-                            </div>
+                            <Tabs className={"px-4"} activeTab={activeTab} tabClicked={setActiveTab}>
+                                <div label="Upload Video">
+                                    <ImageDropZone />
+                                    <ContinueButton />
+                                </div>
 
-                            <div label="Edit">
-                                <EditView />
-                            </div >
+                                <div label="Edit">
+                                    <EditView />
+                                </div >
 
-                            <div label="Dependencies">
-                                <Dependencies />
-                            </div >
+                                <div label="Dependencies">
+                                    <Dependencies />
+                                </div >
+                            </Tabs>
 
-                            <div label="ls">
-                                <LsView />
-                            </div>
-                        </Tabs>
-
-                        {!dockerInstalled && <div className="fixed shadow-md flex items-center gap-2 w-min p-2 rounded bg-slate-800 inset-x-0 mx-auto bottom-4">
-                            <span className="text-yellow-500 font-bold pl-2">Warning: </span>
-                            <span className="text-white whitespace-nowrap">Missing dependencies.</span>
-                            <Button className="ml-2" onClick={() => setActiveTab(2)}>Install</Button>
-                        </div>}
-                    </StableDiffusionSetupContext.Provider>
+                            {!dockerInstalled && <div className="fixed shadow-md flex items-center gap-2 w-min p-2 rounded bg-slate-800 inset-x-0 mx-auto bottom-4">
+                                <span className="text-yellow-500 font-bold pl-2">Warning: </span>
+                                <span className="text-white whitespace-nowrap">Missing dependencies.</span>
+                                <Button className="ml-2" onClick={() => setActiveTab(2)}>Install</Button>
+                            </div>}
+                        </StableDiffusionSetupContext.Provider>
+                    </FfmpegInstalledContext.Provider>
                 </DockerInstalledContext.Provider>
             </MainTabContext.Provider>
         </FileContext.Provider>
