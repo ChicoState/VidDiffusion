@@ -4,7 +4,6 @@ const os = require('os');
 const fs = require('fs');
 const Docker = require('dockerode');
 const { checkDockerInstalled, checkVidDiffusionContainer, buildContainer } = require('./Docker.js');
-
 // const { buildImage, runContainer } = require('./Docker.js');
 
 const isDev = process.env.NODE_ENV !== 'development';

@@ -56,6 +56,7 @@ module.exports.videoToImages = async function() {
     // then run container with custom command
 }
 
+
 /*
 // const { app, BrowserWindow, ipcMain } = require('electron');
 // const path = require('path');
@@ -186,14 +187,14 @@ export async function runContainer() {
 // const util = require('util');
 // const exec = util.promisify(require('child_process').exec);
 const fs = require('fs');
-// var Docker = require('dockerode');
+const Docker = require('dockerode');
 
 const DOCKER_SOCKET_PATH = '/var/run/docker.sock';
+const CONTAINER_NAME = 'viddiffusion';
 
-module.exports.checkDockerInstalled = async function checkDockerInstalled() {
+module.exports.checkDockerInstalled = function() {
     return fs.existsSync(DOCKER_SOCKET_PATH);
 };
 */
-
 
 
