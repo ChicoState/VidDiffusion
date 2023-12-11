@@ -7,10 +7,8 @@ const Docker = require('dockerode');
 
 const DOCKER_SOCKET_PATH = '/var/run/docker.sock';
 const IMAGE_NAME = 'viddiffusion';
-const CONTAINER_NAME = 'viddiffusion-container';
 const IMG_DIR = 'videoImages';
 const OUT_DIR = 'output';
-
 
 module.exports.getCurrentDirectory = function() {
     return process.cwd();
@@ -28,7 +26,6 @@ module.exports.checkFfmpegInstalled = async function() {
     } catch (e) {
         return false;
     }
-    // return fs.existsSync(stdout);
 }
 
 module.exports.checkVidDiffusionContainer = async function() {
@@ -71,6 +68,8 @@ module.exports.videoToImages = function(_, videoPath) {
 
     console.log("converting file")
 
+    fs.rmSync("./videoImages", { recursive: true });
+
     if (!fs.existsSync("./videoImages")) {
         fs.mkdirSync("./videoImages")
     }
@@ -81,10 +80,6 @@ module.exports.videoToImages = function(_, videoPath) {
 
     console.log(videoPath);
     let ext = videoPath.split(".").slice(-1);
-
-    for (const file of fs.readdirSync("./videoImages/")) {
-        fs.unlinkSync(path.join("./videoImages", file));
-    }
 
     try {
         fs.linkSync(videoPath, `./videoImages/input.${ext}`)
@@ -107,36 +102,6 @@ module.exports.videoToImages = function(_, videoPath) {
             }
         })
     });
-
-
-
-    // var auxContainer;
-    // return new Promise((resolve, reject) => docker.createContainer({
-    //     Image: IMAGE_NAME,
-    //     AttachStdin: false,
-    //     AttachStdout: true,
-    //     AttachStderr: true,
-    //     Binds: [`${PREFIX}/videoImages:/videoImages`],
-    //     Tty: true,
-    //     OpenStdin: false,
-    //     StdinOnce: false
-    // }).then(function(container) {
-    //     auxContainer = container;
-    //     return auxContainer.start();
-    // }).then(function(data) {
-    //     return auxContainer.resize({
-    //         h: process.stdout.rows,
-    //         w: process.stdout.columns
-    //     });
-    // }).then(function(data) {
-    //     return auxContainer.stop();
-    // }).then(function(data) {
-    //     return auxContainer.remove();
-    // }).then(function(data) {
-    //     console.log(data);
-    // }).catch(function(err) {
-    //     reject(err);
-    // }));
 }
 
 module.exports.convertImages = async function(img_name, prompt_string) {
@@ -178,23 +143,10 @@ module.exports.convertImages = async function(img_name, prompt_string) {
             container.attach({
                 stream: true,
                 stdout: true,
-                stderr: true }, function (err, stream) {
-                    stream.pipe(process.stdout);
+                stderr: true
+            }, function(err, stream) {
+                stream.pipe(process.stdout);
             });
-
-            /*
-            container.exec({
-                Cmd: [
-                    "python", "demo.py", "--prompt", promptstr,
-                    "--output", "output/out2.png"
-                ],
-                Tty: true,
-                Detach: true,
-                AttachStdin: true,
-                AttachStdout: true
-            });
-            */
-
         } catch (error) {
             reject(error);
         }
