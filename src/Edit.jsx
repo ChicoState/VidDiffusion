@@ -4,24 +4,25 @@ import React, { useState, createContext, useContext, createRef, useEffect } from
 import { Button, LoadingButton } from "./Components.jsx";
 import { FileContext } from "./app.jsx";
 
-const ImageFramesView = () => {
+const ImageFramesView = ({ images, onImagesAdded, convertedImages }) => {
     const { file, setFile: _ } = useContext(FileContext);
-
-    const [images, setImages] = useState([]);
-    const [resultImages, setResultImages] = useState([])
 
     const [imagePreviewsLoading, setImagePreviewsLoading] = useState(false);
     const [generateImagesLoading, setGenerateImagesLoading] = useState(false);
 
-    const PREFIX = "/Users/kilometers/Projects/VidDiffusion";
-    // const PREFIX = await window.electronAPI.getCurrentDirectory();
-    // console.log(`PREFIX: ${PREFIX}`);
+    const [prefix, setPrefix] = useState();
+
+    useEffect(() => {
+        (async () => {
+            setPrefix(await window.electronAPI.getCurrentDirectory());
+        })();
+    }, []);
 
     const generateImages = async () => {
         setGenerateImagesLoading(true);
         let files = await window.electronAPI.videoToImages(file.path);
         setGenerateImagesLoading(false);
-        setImages(files);
+        onImagesAdded(files);
     };
 
     const generateVideo = async () => {
@@ -39,10 +40,10 @@ const ImageFramesView = () => {
             <div className="grid grid-cols-3 gap-4 items-center justify-items-center mb-8">
                 {images.map((image, i) =>
                     <>
-                        <img className="rounded-md shadow-md" key={`${image}-1`} src={`file://${PREFIX}/videoImages/${image}?someQueryParam=false`}></img>
+                        <img className="rounded-md shadow-md" key={`${image}-1`} src={`file://${prefix}/videoImages/${image}?someQueryParam=false`}></img>
                         <span key={`${image}-2`} className="text-2xl">→</span>
-                        {resultImages[i]
-                            ? <img key={`${image}-3`} src={`file://${PREFIX}/${resultImages[i]}`}></img>
+                        {convertedImages[i]
+                            ? <img key={`${image}-3`} src={`file://${prefix}/${convertedImages[i]}`}></img>
                             : <div
                                 key={`${image}-3`}
                                 className={`${imagePreviewsLoading ? "animate-pulse" : ""} ml-auto font-mono aspect-square bg-neutral-200 p-5 rounded-md flex items-center justify-items-center`}><span>NOT GENERATED</span></div>}
@@ -53,14 +54,20 @@ const ImageFramesView = () => {
     );
 };
 
-const PromptForm = () => {
+const PromptForm = ({ images, imageDoneConverting }) => {
     const [updateStyleLoading, setUpdateStyleLoading] = useState(false);
-    const [textData, setTextData] = useState("");
+    const [prompt, setPrompt] = useState("");
 
     const onSubmit = async () => {
         setUpdateStyleLoading(true);
-        console.log(textData);
 
+        console.log(prompt);
+        for (let imageName of images) {
+            await window.electronAPI.convertImages({ imageName, prompt });
+            imageDoneConverting(imageName);
+        }
+
+        setUpdateStyleLoading(false);
     }
 
     return (
@@ -69,7 +76,7 @@ const PromptForm = () => {
 
             <p className="text-neutral-700 mb-2">Enter a prompt to transform your video into another style.</p>
 
-            <textarea className="border-black rounded-md resize-y w-full border-2 p-2" onChange={(e) => setTextData(e.target.value)} value={textData} />
+            <textarea className="border-black rounded-md resize-y w-full border-2 p-2" onChange={(e) => setPrompt(e.target.value)} value={prompt} />
 
             <LoadingButton type="submit" loading={updateStyleLoading} onClick={onSubmit}>Update Style</LoadingButton>
         </div>
@@ -77,11 +84,11 @@ const PromptForm = () => {
 };
 
 export const EditView = () => {
-    const [activeTab, setActiveTab] = useState(0);
+    const [images, setImages] = useState([]);
+    const [convertedImages, setConvertedImages] = useState([]);
 
     return <div className="flex flex-col gap-4">
-        <PromptForm />
-
-        <ImageFramesView />
+        <PromptForm images={images} imageDoneConverting={(img) => setConvertedImages([...convertedImages, img])} />
+        <ImageFramesView onImagesAdded={setImages} images={images} convertedImages={convertedImages} />
     </div>;
 };
