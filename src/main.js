@@ -5,7 +5,15 @@ const fs = require('fs');
 const { default: fetch } = require('node-fetch');
 // const net = require('net');
 const Docker = require('dockerode');
-const { checkDockerInstalled, checkVidDiffusionContainer, buildContainer, videoToImages, checkFfmpegInstalled } = require('./Docker.js');
+const {
+    checkDockerInstalled,
+    checkVidDiffusionContainer,
+    buildContainer,
+    videoToImages,
+    checkFfmpegInstalled,
+    getCurrentDirectory,
+    convertImages
+} = require('./Docker.js');
 // const { buildImage, runContainer } = require('./DockerHelper.js');
 
 const isDev = process.env.NODE_ENV !== 'development';
@@ -47,6 +55,8 @@ app.on('ready', () => {
     ipcMain.handle('check-vid-diffusion', checkVidDiffusionContainer);
     ipcMain.handle('build-container', buildContainer);
     ipcMain.handle('video-to-images', videoToImages);
+    ipcMain.handle('get-current-directory', getCurrentDirectory);
+    ipcMain.handle('convert-images', convertImages);
 
     protocol.registerFileProtocol('atom', (request, callback) => {
         let filePath = request.url.slice('atom://'.length);

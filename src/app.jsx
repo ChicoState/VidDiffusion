@@ -12,8 +12,9 @@ import { createRoot } from 'react-dom/client';
 import { InstallBanner } from "./InstallBanner.jsx";
 import ImageDropZone from './ImageDropZone';
 import { Tabs } from "./Tabs.jsx";
-import { Button } from "./Components.jsx";
+import { Button, LoadingButton } from "./Components.jsx";
 import { Dependencies } from "./Dependencies.jsx";
+import { EditView } from "./Edit.jsx";
 
 export const FileContext = createContext(null);
 export const MainTabContext = createContext(null);
@@ -184,7 +185,9 @@ const ImageFramesView = () => {
 
     const [loading, setIsLoading] = useState([]);
 
-    const PREFIX = "/Users/kilometers/Projects/VidDiffusion";
+    // const PREFIX = "/Users/kilometers/Projects/VidDiffusion";
+    const PREFIX = window.electronAPI.getCurrentDirectory();
+    console.log(`PREFIX: ${PREFIX}`);
 
     const generateImages = async () => {
         console.log(file.path);
@@ -216,6 +219,7 @@ const ImageFramesView = () => {
     );
 };
 
+/*
 const EditView = () => {
     const [activeTab, setActiveTab] = useState(0);
 
@@ -225,6 +229,7 @@ const EditView = () => {
         <ImageFramesView />
     </div>;
 };
+*/
 
 /*
 const DragAndDrop = () => {
@@ -379,7 +384,7 @@ const App = () => {
                                     <ContinueButton />
                                 </div>
 
-                                <div label="Edit">
+                                <div label="Edit" disabled={file == undefined}>
                                     <EditView />
                                 </div >
 
