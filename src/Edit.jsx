@@ -55,6 +55,7 @@ const PromptForm = () => {
     const onSubmit = async () => {
         setUpdateStyleLoading(true);
         console.log(textData);
+
     }
 
     return (
