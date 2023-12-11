@@ -105,47 +105,34 @@ module.exports.videoToImages = function(_, videoPath) {
 }
 
 
-/*
-module.exports.imagesToVideo = function(_, videoPath) {
+module.exports.imagesToVideo = function() {
 
     console.log("converting file")
 
-    const images_dir = "./videoImages/output";
     const video_path = "./videoImages/output/out.mp4";
-    let ext = videoPath.split(".").slice(-1);
-
-    for (const file of fs.readdirSync("./videoImages/output")) {
-        fs.unlinkSync(path.join("./videoImages", file));
-    }
-
-    for (const file of fs.readdirSync("./videoImages/output")) {
-        fs.unlinkSync(path.join("./videoImages/output", file));
-    }
-
-    try {
-        fs.linkSync(videoPath, `./videoImages/input.${ext}`)
-    } catch (e) { } // ignore error -- file already exists
 
     const proc = child_process.spawn(
         '/bin/sh',
-        ['-c', `ffmpeg -i ./videoImages/input.${ext} -r 1/1 ./videoImages/frame%04d.bmp`],
+        ['-c', `ffmpeg -framerate 30 -pattern_type glob -i './videoImages/*.bmp' -c:v libx264 -pix_fmt yuv420p ${video_path}`],
         { cwd: process.cwd(), env: process.env }
     );
 
     return new Promise((resolve, reject) => {
         proc.on('close', (code) => {
-            console.log("ffmpeg invocation finished")
+            if (!fs.existsSync(video_path)) {
+                console.log("ffmpeg recompile failed");
+                reject();
+            }
+
+            console.log("ffmpeg recompile finished")
             if (code == 0) {
-                let files = fs.readdirSync('./videoImages/');
-                resolve(files.filter((f) => f.endsWith(".bmp")));
+                resolve(video_path);
             } else {
                 reject();
             }
         })
     });
-
 }
-*/
 
 module.exports.convertImages = async function(img_name, prompt_string) {
     const PREFIX = process.cwd();

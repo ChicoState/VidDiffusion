@@ -24,11 +24,16 @@ const ImageFramesView = () => {
         setImages(files);
     };
 
+    const generateVideo = async () => {
+        let file = await window.electronAPI.imagesToVideo();
+    };
+
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center">
                 <h1 className="font-bold">Image Frames</h1>
                 <LoadingButton className="ml-auto" onClick={generateImages} loading={generateImagesLoading}>Generate Images</LoadingButton>
+                <LoadingButton className="ml-auto" onClick={generateVideo} >Generate Video</LoadingButton>
             </div>
 
             <div className="grid grid-cols-3 gap-4 items-center justify-items-center mb-8">

@@ -12,7 +12,8 @@ const {
     videoToImages,
     checkFfmpegInstalled,
     getCurrentDirectory,
-    convertImages
+    convertImages,
+    imagesToVideo
 } = require('./Docker.js');
 // const { buildImage, runContainer } = require('./DockerHelper.js');
 
@@ -57,6 +58,7 @@ app.on('ready', () => {
     ipcMain.handle('video-to-images', videoToImages);
     ipcMain.handle('get-current-directory', getCurrentDirectory);
     ipcMain.handle('convert-images', convertImages);
+    ipcMain.handle('images-to-video', imagesToVideo);
 
     protocol.registerFileProtocol('atom', (request, callback) => {
         let filePath = request.url.slice('atom://'.length);
