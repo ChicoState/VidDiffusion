@@ -71,6 +71,8 @@ module.exports.videoToImages = function(_, videoPath) {
 
     console.log("converting file")
 
+    fs.rmSync("./videoImages", { recursive: true });
+
     if (!fs.existsSync("./videoImages")) {
         fs.mkdirSync("./videoImages")
     }
@@ -82,9 +84,15 @@ module.exports.videoToImages = function(_, videoPath) {
     console.log(videoPath);
     let ext = videoPath.split(".").slice(-1);
 
+    /*
     for (const file of fs.readdirSync("./videoImages/")) {
         fs.unlinkSync(path.join("./videoImages", file));
     }
+
+    for (const file of fs.readdirSync("./videoImages/output/")) {
+        fs.unlinkSync(path.join("./videoImages/output", file));
+    }
+    */
 
     try {
         fs.linkSync(videoPath, `./videoImages/input.${ext}`)
@@ -92,7 +100,7 @@ module.exports.videoToImages = function(_, videoPath) {
 
     const proc = child_process.spawn(
         '/bin/sh',
-        ['-c', `ffmpeg -i ./videoImages/input.${ext} -r 1/1 ./videoImages/frame%04d.bmp`],
+        ['-c', `ffmpeg -r 1 -i ./videoImages/input.${ext} -r 1 ./videoImages/frame%04d.bmp`],
         { cwd: process.cwd(), env: process.env }
     );
 
@@ -138,6 +146,49 @@ module.exports.videoToImages = function(_, videoPath) {
     //     reject(err);
     // }));
 }
+
+
+/*
+module.exports.imagesToVideo = function(_, videoPath) {
+
+    console.log("converting file")
+
+    const images_dir = "./videoImages/output";
+    const video_path = "./videoImages/output/out.mp4";
+    let ext = videoPath.split(".").slice(-1);
+
+    for (const file of fs.readdirSync("./videoImages/output")) {
+        fs.unlinkSync(path.join("./videoImages", file));
+    }
+
+    for (const file of fs.readdirSync("./videoImages/output")) {
+        fs.unlinkSync(path.join("./videoImages/output", file));
+    }
+
+    try {
+        fs.linkSync(videoPath, `./videoImages/input.${ext}`)
+    } catch (e) { } // ignore error -- file already exists
+
+    const proc = child_process.spawn(
+        '/bin/sh',
+        ['-c', `ffmpeg -i ./videoImages/input.${ext} -r 1/1 ./videoImages/frame%04d.bmp`],
+        { cwd: process.cwd(), env: process.env }
+    );
+
+    return new Promise((resolve, reject) => {
+        proc.on('close', (code) => {
+            console.log("ffmpeg invocation finished")
+            if (code == 0) {
+                let files = fs.readdirSync('./videoImages/');
+                resolve(files.filter((f) => f.endsWith(".bmp")));
+            } else {
+                reject();
+            }
+        })
+    });
+
+}
+*/
 
 module.exports.convertImages = async function(img_name, prompt_string) {
     const PREFIX = process.cwd();
