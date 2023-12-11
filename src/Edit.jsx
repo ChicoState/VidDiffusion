@@ -1,14 +1,16 @@
 import React, { useState, createContext, useContext, createRef, useEffect } from "react";
 
 
-import { Button, LoadingButton } from "./Components.jsx";
-import { FileContext } from "./app.jsx";
+import { Button, DEFAULT_BUTTON_STYLES, FLAT_BUTTON_STYLES, LoadingButton } from "./Components.jsx";
+import { ConvertedImagesContext, FileContext, ImagesContext } from "./app.jsx";
+import { update } from "@react-spring/web";
 
 const ImageFramesView = ({ images, onImagesAdded, convertedImages }) => {
     const { file, setFile: _ } = useContext(FileContext);
 
     const [imagePreviewsLoading, setImagePreviewsLoading] = useState(false);
     const [generateImagesLoading, setGenerateImagesLoading] = useState(false);
+    const [generateVideoLoading, setGenerateVideoLoading] = useState(false);
 
     const [prefix, setPrefix] = useState();
 
@@ -16,6 +18,9 @@ const ImageFramesView = ({ images, onImagesAdded, convertedImages }) => {
         (async () => {
             setPrefix(await window.electronAPI.getCurrentDirectory());
         })();
+
+        if (images.length == 0)
+            generateImages();
     }, []);
 
     const generateImages = async () => {
@@ -26,15 +31,17 @@ const ImageFramesView = ({ images, onImagesAdded, convertedImages }) => {
     };
 
     const generateVideo = async () => {
+        setGenerateImagesLoading(true);
         let file = await window.electronAPI.imagesToVideo();
+        setGenerateImagesLoading(false);
     };
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
                 <h1 className="font-bold">Image Frames</h1>
-                <LoadingButton className="ml-auto" onClick={generateImages} loading={generateImagesLoading}>Generate Images</LoadingButton>
-                <LoadingButton className="ml-auto" onClick={generateVideo} >Generate Video</LoadingButton>
+                <LoadingButton className={`${FLAT_BUTTON_STYLES} ml-auto`} onClick={generateImages} loading={generateImagesLoading}>Generate Images</LoadingButton>
+                <LoadingButton className={FLAT_BUTTON_STYLES} onClick={generateVideo} loading={generateVideoLoading}>Generate Video</LoadingButton>
             </div>
 
             <div className="grid grid-cols-3 gap-4 items-center justify-items-center mb-8">
@@ -78,14 +85,17 @@ const PromptForm = ({ images, imageDoneConverting }) => {
 
             <textarea className="border-black rounded-md resize-y w-full border-2 p-2" onChange={(e) => setPrompt(e.target.value)} value={prompt} />
 
-            <LoadingButton type="submit" loading={updateStyleLoading} onClick={onSubmit}>Update Style</LoadingButton>
+            <div className="flex gap-4 items-center">
+                <LoadingButton className={DEFAULT_BUTTON_STYLES} loading={updateStyleLoading} onClick={onSubmit}>Update Style</LoadingButton>
+                {images && updateStyleLoading && <span className="animate-pulse">Estimated completion time: {Math.floor(3 * images.length / 60)} hours</span>}
+            </div>
         </div>
     );
 };
 
 export const EditView = () => {
-    const [images, setImages] = useState([]);
-    const [convertedImages, setConvertedImages] = useState([]);
+    const { images, setImages } = useContext(ImagesContext);
+    const { convertedImages, setConvertedImages } = useContext(ConvertedImagesContext);
 
     return <div className="flex flex-col gap-4">
         <PromptForm images={images} imageDoneConverting={(img) => setConvertedImages([...convertedImages, img])} />
