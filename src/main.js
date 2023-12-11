@@ -1,9 +1,20 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, protocol } = require('electron');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const { doLs } = require("./DoLs.js");
+const { default: fetch } = require('node-fetch');
+// const net = require('net');
 const Docker = require('dockerode');
+const {
+    checkDockerInstalled,
+    checkVidDiffusionContainer,
+    buildContainer,
+    videoToImages,
+    checkFfmpegInstalled,
+    getCurrentDirectory,
+    convertImages,
+    imagesToVideo
+} = require('./Docker.js');
 // const { buildImage, runContainer } = require('./DockerHelper.js');
 
 const isDev = process.env.NODE_ENV !== 'development';
@@ -23,6 +34,7 @@ const createWindow = () => {
         autoHideMenuBar: true,
         webPreferences: {
             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+            webSecurity: false,
         },
     });
 
@@ -39,13 +51,50 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
-    ipcMain.handle('do-ls', doLs);
+    ipcMain.handle('check-docker-installed', checkDockerInstalled);
+    ipcMain.handle('check-ffmpeg-installed', checkFfmpegInstalled);
+    ipcMain.handle('check-vid-diffusion', checkVidDiffusionContainer);
+    ipcMain.handle('build-container', buildContainer);
+    ipcMain.handle('video-to-images', videoToImages);
+    ipcMain.handle('get-current-directory', getCurrentDirectory);
+    ipcMain.handle('convert-images', convertImages);
+    ipcMain.handle('images-to-video', imagesToVideo);
+
+    protocol.registerFileProtocol('atom', (request, callback) => {
+        let filePath = request.url.slice('atom://'.length);
+        console.log(`received request ${filePath}`);
+        callback({ filePath })
+    })
+    // protocol.handle('atom', (request) => {
+    //     console.log(fetch);
+    //     return fetch('file://' + );
+    // });
+
+    // protocol.registerSchemesAsPrivileged([
+    //     { scheme: 'atom', privileges: { bypassCSP: true } }
+    // ]);
 
     createWindow();
 
-    // createContainer();
-});
+    /*
+    performDockerTasks().then(() => {
+        var docker = new Docker();
+        docker.listContainers(
+            { all: true },
+            function(err, containers) {
+                console.log('total number of containers: ' + containers.length);
+                containers.forEach(function (container) {
+                    console.log(
+                        `Container ${container.Names} - ` +
+                        `current status ${container.Status} - ` +
+                        `based on image ${container.Image}`);
+                });
+            }
+        );
+    });
+    */
 
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -119,7 +168,5 @@ async function performDockerTasks() {
         console.error("Error during Docker operations:", error);
     }
 }
-
-performDockerTasks();
 */
 
